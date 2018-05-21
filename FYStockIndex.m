@@ -56,33 +56,41 @@
         if (idx == 0) {
             model.k = 50;
             model.d = 50;
-            model.j = model.k * 3 - model.d * 2;
+            model.j = model.d * 3 - model.k * 2;
         }else if (idx < 9){
-            __block double minForNine = 0;
-            __block double maxForNine = 0;
+            __block CGFloat minForNine = CGFLOAT_MIN;
+            __block double maxForNine = CGFLOAT_MAX;
             FYKDJModel *mode = data[idx - 1];
             NSArray<WWLineEntity*>*beforeArray = [dataArray subarrayWithRange:NSMakeRange(0, idx - 1)];
             [beforeArray enumerateObjectsUsingBlock:^(WWLineEntity * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                if (idx == 0) {
+                    minForNine = obj.low;
+                    maxForNine = obj.high;
+                }
                 minForNine = minForNine < obj.low ? minForNine : obj.low;
                 maxForNine = maxForNine > obj.high ? maxForNine : obj.high;
             }];
             double rsv = (obj.close - minForNine) / (maxForNine - minForNine) * 100;
             model.k = (rsv + 2 * mode.k) / 3;
-            model.d = (model.k + 2 * mode.d) /3;
-            model.j = 3*model.k - 2*model.d;
+            model.d = model.k / 3 + mode.d * 2 / 3;
+            model.j = 3*model.d - 2*model.k;
         }else{
-            __block double minForNine = 0;
-            __block double maxForNine = 0;
+            __block double minForNine = CGFLOAT_MIN;
+            __block double maxForNine = CGFLOAT_MAX;
             FYKDJModel *mode = data[idx - 1];
             NSArray<WWLineEntity*>*beforeArray = [dataArray subarrayWithRange:NSMakeRange(idx - 9, 9)];
             [beforeArray enumerateObjectsUsingBlock:^(WWLineEntity * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+                if (idx == 0) {
+                    minForNine = obj.low;
+                    maxForNine = obj.high;
+                }
                 minForNine = minForNine < obj.low ? minForNine : obj.low;
                 maxForNine = maxForNine > obj.high ? maxForNine : obj.high;
             }];
             double rsv = (obj.close - minForNine) / (maxForNine - minForNine) * 100;
             model.k = (rsv + 2 * mode.k) / 3;
             model.d = (model.k + 2 * mode.d) /3;
-            model.j = 3*model.k - 2*model.d;
+            model.j = 3*model.d - 2*model.k;
         }
         [data addObject:model];
     }];
@@ -120,7 +128,7 @@
         if (obj.close - obj.open > 0) {
             rsUp += (obj.close - obj.open);
         }else{
-            rsDown += (obj.close - obj.open);
+            rsDown += (obj.open - obj.close);
         }
     }];
     return rsUp/rsDown;
